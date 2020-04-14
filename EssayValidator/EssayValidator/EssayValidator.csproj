@@ -67,8 +67,10 @@
     <Compile Include="AEVMainForm.Designer.cs">
       <DependentUpon>AEVMainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="GoogleSearchApi.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WordReader.cs" />
     <EmbeddedResource Include="AEVMainForm.resx">
       <DependentUpon>AEVMainForm.cs</DependentUpon>
     </EmbeddedResource>

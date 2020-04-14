@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Google.Apis.Customsearch.v1;
+using Google.Apis.Customsearch.v1.Data;
+using Google.Apis.Services;
 using Microsoft.Office.Interop.Word;
 using Application = Microsoft.Office.Interop.Word.Application;
 
@@ -21,52 +25,32 @@ namespace EssayValidator
 
         private string PathToFile = $@"C:\Temp";
         private string FileName = "testi.docx";
+
         private void button_Validate_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(textBox_PathToEssayDocument.Text)) PathToFile = textBox_PathToEssayDocument.Text;
 
             // TODO Path join
-            PathToFile += $@"\" + FileName;
+            PathToFile = PathToFile + $@"\" + FileName;
 
             if (!System.IO.File.Exists(PathToFile))
             {
-                MessageBox.Show("Tiedostoa ei löydy.");
+                MessageBox.Show($"Tiedostoa {PathToFile} ei löydy.");
                 return;
             }
 
-            var text = ReadFile(PathToFile);
-            List<string> sentences = text.Split('.').ToList<string>();
+            var sentences = WordReader.ReadSentences(PathToFile);
+            dataGridView_result.Columns.Add("Title", "Title");
+            dataGridView_result.Columns.Add("Link", "Link");
             foreach (var sentenced in sentences)
             {
-                MessageBox.Show(sentenced);
+                IList<Result> result = GoogleSearchApi.Search(sentenced, out var total);
+                if (result == null) continue;
+                Result first = result[0];
+                label1.Text = total;
+                dataGridView_result.Rows.Add(first.Title, first.Link);
             }
         }
 
-        private string ReadFile(string documentPath)
-        {
-            Application word = new Application();
-            Document doc = new Document();
-
-            object fileName = documentPath;
-            // Define an object to pass to the API for missing parameters
-            object missing = System.Type.Missing;
-            doc = word.Documents.Open(ref fileName,
-                ref missing, ref missing, ref missing, ref missing,
-                ref missing, ref missing, ref missing, ref missing,
-                ref missing, ref missing, ref missing, ref missing,
-                ref missing, ref missing, ref missing);
-
-            String read = string.Empty;
-            List<string> data = new List<string>();
-            foreach (Range tmpRange in doc.StoryRanges)
-            {
-                //read += tmpRange.Text + "<br>";
-                data.Add(tmpRange.Text);
-            }
-            ((_Document)doc).Close();
-            ((_Application)word).Quit();
-
-            return string.Join(" ", data);
-        }
     }
 }
